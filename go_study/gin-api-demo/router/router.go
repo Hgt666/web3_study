@@ -31,6 +31,10 @@ func Init_router(r *gin.Engine) {
 		apiV2.POST("/updatePost", api.UpdatePost)
 		// 删除文章
 		apiV2.DELETE("/deletePost", api.DeletePost)
+		// 创建评论
+		apiV2.POST("/createComment", api.CreateComment)
+		// 获取评论列表
+		apiV2.GET("/GetComments", api.GetComments)
 
 	}
 
