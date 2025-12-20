@@ -23,5 +23,5 @@ type Comment struct {
 	gorm.Model
 	UserID  uint
 	Content string `gorm:"not null" json:"content" form:"content"`
-	PostID  uint
+	PostID  int
 }

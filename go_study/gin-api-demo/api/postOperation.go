@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-api-demo/model"
@@ -17,6 +18,7 @@ func CreatePost(c *gin.Context) {
 			"status": "failed",
 			"msg":    "参数错误",
 		})
+		log.Println(err)
 		return
 	}
 	// 从上下文中获取用户信息
@@ -43,6 +45,7 @@ func ListPost(c *gin.Context) {
 			"status": "failed",
 			"msg":    "获取文章列表失败",
 		})
+		log.Println(allPosts.Error)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
@@ -62,6 +65,7 @@ func PostDetail(c *gin.Context) {
 			"status": "failed",
 			"msg":    "文章不存在或已被删除",
 		})
+		log.Println(err)
 		c.Abort()
 		return
 	}
@@ -81,12 +85,14 @@ func UpdatePost(c *gin.Context) {
 	title := c.PostForm("title")
 	content := c.PostForm("content")
 	id := c.PostForm("id")
-	result := utils.DB.Debug().Model(&post).Where("id = ?", id).First(&post)
+	result := utils.DB.Model(&post).Where("id = ?", id).First(&post)
 	if result.RowsAffected == 0 {
 		c.JSON(http.StatusOK, gin.H{
 			"status": "failed",
 			"msg":    "文章不存在",
 		})
+		c.Abort()
+		log.Println("文章不存在")
 		return
 	}
 	if err := utils.DB.Model(&post).Where("id = ?", id).Updates(model.Post{Title: title, Content: content}).Error; err != nil {
@@ -109,9 +115,9 @@ func DeletePost(c *gin.Context) {
 	userID := c.MustGet("user_id").(uint64)
 	var post []model.Post
 	id := c.Query("id")
-	utils.DB.Debug().Model(&post).Where("user_id = ?", userID).Find(&post)
+	utils.DB.Model(&post).Where("user_id = ?", userID).Find(&post)
 	// 通过id查找文章
-	result := utils.DB.Debug().Model(&post).Where("id = ?", id).Delete(&post)
+	result := utils.DB.Model(&post).Where("id = ?", id).Delete(&post)
 	if result.RowsAffected == 0 {
 		c.JSON(http.StatusOK, gin.H{
 			"status": "failed",

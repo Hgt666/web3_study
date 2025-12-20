@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-api-demo/model"
@@ -96,6 +97,7 @@ func Login(c *gin.Context) {
 			"code": http.StatusBadRequest,
 			"msg":  err.Error(),
 		})
+		log.Println(err.Error())
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"code": http.StatusOK,
@@ -105,4 +107,6 @@ func Login(c *gin.Context) {
 			"refreshToken": refreshToken,
 		},
 	})
+	// 记录登录日志
+	log.Println("用户", username, "登录成功")
 }
