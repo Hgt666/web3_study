@@ -35,22 +35,13 @@ contract NFTAuction is Ownable, IERC721Receiver {
     );
 
     // 出价事件定义
-    event Bid(
-        uint256 auctionId,
-        address bidder,
-        uint256 amount
-    );
+    event Bid(uint256 auctionId, address bidder, uint256 amount);
 
     // 结束拍卖事件定义
-    event AuctionEnded(
-        uint256 auctionId,
-        address winner,
-        uint256 amount
-    );
-
+    event AuctionEnded(uint256 auctionId, address winner, uint256 amount);
 
     /// @dev 构造函数，初始化合约
-    constructor()  Ownable(msg.sender) {}
+    constructor() Ownable(msg.sender) {}
 
     /**
      * @dev 创建拍卖
@@ -64,7 +55,7 @@ contract NFTAuction is Ownable, IERC721Receiver {
         uint256 _tokenId,
         uint256 _startingPrice,
         uint256 _duration
-    ) public  returns (uint256) {
+    ) public returns (uint256) {
         require(_nftContract != address(0), unicode"NFT合约地址不能为空");
         require(_startingPrice > 0, unicode"起拍价格必须大于0");
         require(_duration * 1 minutes > 0, unicode"拍卖持续时间必须大于0");
@@ -93,7 +84,7 @@ contract NFTAuction is Ownable, IERC721Receiver {
             nftContract: _nftContract,
             tokenId: _tokenId,
             startingPrice: _startingPrice,
-            duration: _duration* 1 minutes,
+            duration: _duration * 1 minutes,
             endTime: block.timestamp + (_duration * 1 minutes),
             highestBidder: address(0),
             highestBid: 0,
@@ -117,16 +108,13 @@ contract NFTAuction is Ownable, IERC721Receiver {
      * @param _auctionId 拍卖ID
      */
     //      * @TODO 暂时只实现ETH出价，后续支持ERC20出价
-    function bid(uint256 _auctionId) public payable  {
+    function bid(uint256 _auctionId) public payable {
         // 缓存拍卖信息
         Auction storage auction = auctions[_auctionId];
         // 验证拍卖是否存在
         require(auction.seller != address(0), unicode"拍卖不存在");
         // 验证拍卖是否结束
-        require(
-            block.timestamp  < auction.endTime,
-            unicode"拍卖已结束"
-        );
+        require(block.timestamp < auction.endTime, unicode"拍卖已结束");
         // 验证出价金额是否大于起拍价格
         require(
             msg.value > auction.startingPrice,
@@ -144,12 +132,12 @@ contract NFTAuction is Ownable, IERC721Receiver {
         }
 
         // 出价金额大于当前最高出价，更新最高出价者和最高出价
-        if (
-            msg.value > auction.highestBid && msg.value > auction.startingPrice
-        ) {
-            auction.highestBidder = msg.sender;
-            auction.highestBid = msg.value;
-        }
+        require(
+            msg.value > auction.highestBid && msg.value > auction.startingPrice,
+            "bid not Invaild"
+        );
+        auction.highestBidder = msg.sender;
+        auction.highestBid = msg.value;
 
         emit Bid(_auctionId, msg.sender, msg.value);
     }
@@ -177,19 +165,20 @@ contract NFTAuction is Ownable, IERC721Receiver {
         (bool success, ) = auction.seller.call{value: auction.highestBid}("");
         require(success, "transfer failed");
 
-        emit AuctionEnded(_auctionId, auction.highestBidder, auction.highestBid);
+        emit AuctionEnded(
+            _auctionId,
+            auction.highestBidder,
+            auction.highestBid
+        );
     }
 
-
-        /// @dev 实现IERC721Receiver接口，用于合约接收NFT
+    /// @dev 实现IERC721Receiver接口，用于合约接收NFT
     function onERC721Received(
-        address ,
-        address ,
-        uint256 ,
-        bytes calldata 
-    ) external pure  virtual returns (bytes4) {
+        address,
+        address,
+        uint256,
+        bytes calldata
+    ) external pure virtual returns (bytes4) {
         return this.onERC721Received.selector;
     }
-
-
 }
